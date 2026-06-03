@@ -14,9 +14,9 @@ export function initBooks(scene, camera) {
   const bookMeshes = []
 
   const shelfPositions = [
-    { y: 1.2, xStart: -2.5 },
-    { y: 0.0, xStart: -2.5 },
-    { y: -1.2, xStart: -2.5 }
+    { y: 1.2, xStart: -2 }, //top shelf
+    { y: 0.0, xStart: -2.5 },//middle shelf
+    { y: -1.2, xStart: -2.5 }//bottom shelf
   ]
 
   const shelfOffsets = [0, 0, 0]
@@ -36,7 +36,7 @@ export function initBooks(scene, camera) {
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
     ctx.fillStyle = 'rgba(255,255,255,0.9)'
-    ctx.font = 'bold 13px serif'
+    ctx.font = 'bold 13px Pinyon Script, cursive'
 
     ctx.save()
     ctx.translate(32, 220)
@@ -48,9 +48,12 @@ export function initBooks(scene, camera) {
   }
 
   function addBook(bookData, shelfIndex = 0) {
-    const width = 0.18 + Math.random() * 0.12
-    const height = 1.2 + Math.random() * 0.6
-    const depth = 0.7
+   //scale books factor
+    const scaleFactor = 0.5 
+
+    const width = (0.18 + Math.random() * 0.12) * scaleFactor
+    const height = (1.2 + Math.random() * 0.6) * scaleFactor
+    const depth = 0.7 * scaleFactor
 
     const geometry = new THREE.BoxGeometry(width, height, depth)
 
@@ -77,13 +80,16 @@ export function initBooks(scene, camera) {
       shelfOffsets[shelfIndex] +
       width / 2
 
-    book.position.set(x, shelf.y, 0)
+// This aligns the bottom of the book to the shelf Y position
+const alignedY = shelf.y + (height / 2)
+
+book.position.set(x, alignedY, 0)
 
     book.userData = {
       id: bookData.id,
       title: bookData.title,
       author: bookData.author,
-      originalY: shelf.y,
+      originalY: alignedY,      
       originalZ: 0
     }
 
