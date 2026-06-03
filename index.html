@@ -12,9 +12,25 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0F1A0F; overflow: hidden; }
     canvas { display: block; }
+
+    .testRect{
+        height: 90vh;
+        width: 20vw;
+        background-color: red;
+        position: fixed;
+        pointer-events: none;
+        margin: 5vh;
+    }
+
+    .right{
+        background-color: green;
+        left: 100px;
+    }
   </style>
 </head>
 <body>
+    <div class = "testRect"></div>
+    <div class = "testRect right"></div>
 <div id="book-panel" style="
   display: none;
   position: fixed;
