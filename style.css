@@ -1,0 +1,69 @@
+/* 
+BACKGROUNDS
+#0F1A0F  Page
+#1A2B1A  Card
+#22341E  Modal
+#2E3D28  Shelf
+
+TEXT
+#F0EAD6  Primary
+#C2B8A3  Secondary
+#7A7060  Muted
+#0F1A0F  On Gold
+
+HIGHLIGHTS & INTERACTIVE
+#C48A3F  Default
+#E8C97A  Hover
+#2E3D28  Subtle
+#7A9C68  Focus
+
+BRAND GREENS
+#3B5233  Dark
+#516B44  Primary
+#7A9C68  Mid
+#B0C99A  Light
+
+CANDLELIGHT & WARMTH
+#3D2B1A  Deep
+#7A5230  Mid
+#C48A3F  Glow
+#E8C97A  Gold
+
+MAGICAL ACCENTS
+#1E3D4A  Teal Dark
+#2E7A7A  Teal
+#5C4470  Violet Dark
+#9B7BB8  Violet
+
+BOOK SPINE COLORS
+#3B5233
+#5C4470
+#7A5230
+#1E3D4A
+#516B44
+#6B3A2A
+#2E7A7A
+#4A3B28
+#7A6B44
+#9B7BB8
+
+SPINE TEXT COLOR
+#E8C97A  Gold Spine Text
+*/
+
+@font-face {
+    font-family: 'Oakwood';
+    src: url("../assets/fonts/oakwood.ttf");
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body{
+    background-color: #0F1A0F;
+    color: #F0EAD6;
+    font-family: 'Oakwood';
+}
