@@ -1,13 +1,162 @@
 <!DOCTYPE html>
-    <head>
-        <link rel="stylesheet" href="style.css">
-        <link rel = "icon" href = "">
-        <title>The Animus Library</title>
-    </head>
-    <body>
-        <h1>Hello World </h1>
-        <p>Placeholder text</p>
-        <img src = "assets/images/logo.png">
-        <!--Hello Eva! this is a test from alex's computuer-->
-    </body>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com"> <!-- i wanted cursive book titles but feel free to change-->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pinyon+Script&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animus</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0F1A0F; overflow: hidden; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+<div id="book-panel" style="
+  display: none;
+  position: fixed;
+  top: 50%;
+  right: 40px;
+  transform: translateY(-50%);
+  width: 320px;
+  background: rgba(10, 10, 20, 0.92);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 32px;
+  color: white;
+  font-family: serif;
+  backdrop-filter: blur(12px);
+  z-index: 100;
+">
+  <button onclick="closePanel()" style="
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.4);
+    font-size: 20px;
+    cursor: pointer;
+  ">✕</button>
+  <h2 id="panel-title"  style="font-size: 22px; margin-bottom: 8px;"></h2>
+  <p  id="panel-author" style="color: rgba(255,255,255,0.5); font-size: 14px;"></p>
+</div>
+
+<script>
+  function closePanel() {
+    const panel = document.getElementById('book-panel')
+    gsap.to(panel, {
+      opacity: 0,
+      x: 40,
+      duration: 0.3,
+      ease: 'power2.in',
+      onComplete: () => panel.style.display = 'none'
+    })
+  }
+</script>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three'
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+    import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+    import { initBooks } from './books.js'
+    // scene setup for three.js
+    const scene = new THREE.Scene()
+
+    // camera setup for three.js
+    const camera = new THREE.PerspectiveCamera(
+      60,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      100
+    )
+    camera.position.set(0, 0, 6)
+
+    // renderer
+    const renderer = new THREE.WebGLRenderer({ antialias: true })
+    renderer.setSize(window.innerWidth, window.innerHeight)
+    renderer.setPixelRatio(window.devicePixelRatio)
+    renderer.toneMapping = THREE.ACESFilmicToneMapping
+    renderer.toneMappingExposure = 20
+    document.body.appendChild(renderer.domElement)
+
+    // controls (remove later just for positioning)
+    const controls = new OrbitControls(camera, renderer.domElement)
+    controls.enableDamping = true
+
+    // reg lighting
+    const ambientLight = new THREE.AmbientLight(0x1a1a2e, 3)
+    scene.add(ambientLight)
+
+
+    //i dont know im just playing with lighting conrols in the library
+
+    const candle = new THREE.DirectionalLight(0x7A5230, 3)
+    candle.position.set(2, 3, -2)
+    scene.add(candle)
+
+    const moonLight = new THREE.DirectionalLight(0xc8d8ff, 1)
+    moonLight.position.set(-5, 3, -2)
+    scene.add(moonLight)
+
+    // DRACO LOADER (needed if you used Draco compression)
+    const dracoLoader = new DRACOLoader()
+    dracoLoader.setDecoderPath(
+      'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/'
+    )
+
+    // GLTF LOADER
+    const loader = new GLTFLoader()
+    loader.setDRACOLoader(dracoLoader)
+
+    loader.load(
+      './bookshelf.glb',        //path to my file
+      (gltf) => {
+        gltf.scene.scale.set(3, 3, 3)
+        gltf.scene.position.set(0, -3, 0)
+        gltf.scene.rotation.y =  -(Math.PI / 2)
+        scene.add(gltf.scene)
+        initBooks(scene, camera)
+        console.log('Bookshelf loaded')
+        },
+      (progress) => {
+        const pct = Math.round((progress.loaded / progress.total) * 100)
+        console.log(`Loading: ${pct}%`)
+      },
+      (error) => {
+        console.error('Load failed:', error)
+      }
+    )
+
+    //resize
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight
+      camera.updateProjectionMatrix()
+      renderer.setSize(window.innerWidth, window.innerHeight)
+    })
+
+    //rendering
+    function animate() {
+      requestAnimationFrame(animate)
+      controls.update()
+      renderer.render(scene, camera)
+    }
+    animate()
+
+  </script>
+
+</body>
 </html>
