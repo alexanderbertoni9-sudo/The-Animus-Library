@@ -15,22 +15,23 @@
 
     .testRect{
         height: 90vh;
-        width: 20vw;
-        background-color: red;
+        width: 10vw;
+        background-color: rgba(255,0,0,0);
         position: fixed;
         pointer-events: none;
         margin: 5vh;
     }
 
     .right{
-        background-color: green;
-        left: 100px;
+        background-color: rgba(0,255,0,0);
+        right: 0px;
     }
   </style>
 </head>
 <body>
-    <div class = "testRect"></div>
-    <div class = "testRect right"></div>
+    <img src = "assets/images/pillar.png" class = "testRect">
+    <img src = "assets/images/pillar.png" class = "testRect right">
+
 <div id="book-panel" style="
   display: none;
   position: fixed;
