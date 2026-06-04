@@ -1,7 +1,7 @@
 //three.js library is for our books and etc..
 
 import * as THREE from 'three'
-
+//add as many boopks as u want here
 const books = [
   { id: 1, title: "Crime and Punishment", author: "Fyodor Dostoevsky", color: 0x6B2737 },
   { id: 2, title: "The Idiot", author: "Fyodor Dostoevsky", color: 0x2D4A3E },
@@ -23,8 +23,8 @@ export function initBooks(scene, camera) {
 
   function createSpineTexture(title, hexColor) {
     const canvas = document.createElement('canvas')
-    canvas.width = 64
-    canvas.height = 256
+    canvas.width = 128//can make resoultion better
+    canvas.height = 512//same here
 
     const ctx = canvas.getContext('2d')
 
@@ -36,10 +36,10 @@ export function initBooks(scene, camera) {
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
     ctx.fillStyle = 'rgba(255,255,255,0.9)'
-    ctx.font = 'bold 13px Pinyon Script, cursive'
+    ctx.font = 'bold 48px Pinyon Script, cursive'//font change here 
 
     ctx.save()
-    ctx.translate(32, 220)
+    ctx.translate(128, 880)//this moves the text up and down 
     ctx.rotate(-Math.PI / 2)
     ctx.fillText(title.substring(0, 22), 0, 0)
     ctx.restore()
