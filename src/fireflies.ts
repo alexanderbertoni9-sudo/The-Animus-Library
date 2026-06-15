@@ -14,9 +14,9 @@ const fireflies: Firefly[] = []
 
 export function initFireflies(scene: THREE.Scene): void {
   // Tiny bright core...
-  const coreGeo = new THREE.SphereGeometry(0.012, 8, 8)
-  // ...wrapped in a larger soft halo for glow.
-  const haloGeo = new THREE.SphereGeometry(0.05, 12, 12)
+  const coreGeo = new THREE.SphereGeometry(0.008, 8, 8)
+  // ...wrapped in a faint halo (also tiny now — barely-there pinpricks).
+  const haloGeo = new THREE.SphereGeometry(0.008, 12, 12)
 
   for (let i = 0; i < 14; i++) {
     const material = new THREE.MeshBasicMaterial({ color: 0xffd580 })
@@ -33,7 +33,7 @@ export function initFireflies(scene: THREE.Scene): void {
     const halo = new THREE.Mesh(haloGeo, haloMat)
     mesh.add(halo) // halo follows the core automatically
 
-    const light = new THREE.PointLight(0xffd580, 0.2, 0.9, 2)
+    const light = new THREE.PointLight(0xffd580, 0.15, 0.6, 2)
 
     // Scattered in front of the shelves, spanning both bays.
     const origin = new THREE.Vector3(
@@ -71,7 +71,7 @@ export function updateFireflies(time: number): void {
 
     // Pulse the light and the halo together so the glow breathes.
     const pulse = Math.sin(time * 3 + f.phase)
-    f.light.intensity = 0.2 + pulse * 0.08
+    f.light.intensity = 0.15 + pulse * 0.05
     f.haloMat.opacity = 0.4 + pulse * 0.18
   }
 }

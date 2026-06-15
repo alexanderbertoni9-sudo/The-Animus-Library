@@ -22,23 +22,40 @@ interface BookUserData {
   originalZ: number
 }
 
-// Existing book data array — kept as-is.
+// Existing book data array — kept as-is, then extended to fill the lower shelves.
 const books: BookData[] = [
   { id: 1, title: 'Crime and Punishment', author: 'Fyodor Dostoevsky', color: 0x6b2737 },
   { id: 2, title: 'The Idiot', author: 'Fyodor Dostoevsky', color: 0x2d4a3e },
   { id: 3, title: 'Confessions', author: 'Saint Augustine', color: 0x1c2b4a },
   { id: 4, title: 'Summa Theologica', author: 'Saint Thomas Aquinas', color: 0x8b7355 },
-  { id: 5, title: 'The Bible', author: 'Various Authors', color: 0x4a1b3c }
+  { id: 5, title: 'The Bible', author: 'Various Authors', color: 0x4a1b3c },
+  { id: 6, title: 'The Brothers Karamazov', author: 'Fyodor Dostoevsky', color: 0x4a1520 },
+  { id: 7, title: 'Thus Spoke Zarathustra', author: 'Friedrich Nietzsche', color: 0x1a3a2a },
+  { id: 8, title: 'Meditations', author: 'Marcus Aurelius', color: 0x2a3545 },
+  { id: 9, title: 'The Republic', author: 'Plato', color: 0x3d2b1a },
+  { id: 10, title: 'Beyond Good and Evil', author: 'Friedrich Nietzsche', color: 0x2a1535 },
+  { id: 11, title: 'The Divine Comedy', author: 'Dante Alighieri', color: 0x4a2510 },
+  { id: 12, title: 'War and Peace', author: 'Leo Tolstoy', color: 0x1a3530 },
+  { id: 13, title: 'Anna Karenina', author: 'Leo Tolstoy', color: 0x3a1a25 },
+  { id: 14, title: 'Don Quixote', author: 'Miguel de Cervantes', color: 0x2a3020 },
+  { id: 15, title: 'Faust', author: 'Johann Wolfgang von Goethe', color: 0x1a2040 },
+  { id: 16, title: 'The Iliad', author: 'Homer', color: 0x402510 },
+  { id: 17, title: 'The Odyssey', author: 'Homer', color: 0x253040 },
+  { id: 18, title: 'Hamlet', author: 'William Shakespeare', color: 0x301525 },
+  { id: 19, title: 'King Lear', author: 'William Shakespeare', color: 0x152530 },
+  { id: 20, title: 'Paradise Lost', author: 'John Milton', color: 0x251530 }
 ]
 
 export function initBooks(scene: THREE.Scene, camera: THREE.Camera): void {
   const bookMeshes: THREE.Mesh[] = []
 
-  // Existing shelf positions — kept as-is.
+  // Shelf rows: Y raised +0.15 so books sit on top of the plank, not inside it.
+  // xStart unified to the left edge of the shelf interior so books fill the bay
+  // from the left and pack right.
   const shelfPositions = [
-    { y: 1.2, xStart: -2 }, // top shelf
-    { y: 0.0, xStart: -2.5 }, // middle shelf
-    { y: -1.2, xStart: -2.5 } // bottom shelf
+    { y: 1.35, xStart: -2.5 }, // top shelf
+    { y: 0.15, xStart: -2.5 }, // middle shelf
+    { y: -1.05, xStart: -2.5 } // bottom shelf
   ]
   const shelfOffsets = [0, 0, 0]
 
@@ -63,15 +80,24 @@ export function initBooks(scene: THREE.Scene, camera: THREE.Camera): void {
     ctx.fillRect(0, 0, 256, 1024)
 
     // Leather grain lines
-    for (let i = 0; i < 400; i++) {
+    for (let i = 0; i < 800; i++) {
       const y = Math.random() * 1024
-      ctx.strokeStyle = `rgba(0,0,0,${0.02 + Math.random() * 0.05})`
+      ctx.strokeStyle = `rgba(0,0,0,${0.04 + Math.random() * 0.05})`
       ctx.lineWidth = Math.random() * 1.5
       ctx.beginPath()
       ctx.moveTo(0, y)
       ctx.lineTo(256, y + (Math.random() - 0.5) * 8)
       ctx.stroke()
     }
+
+    // Vertical gradient — top/bottom shading plus a soft central sheen.
+    const vertGrad = ctx.createLinearGradient(0, 0, 0, 1024)
+    vertGrad.addColorStop(0, 'rgba(0,0,0,0.3)')
+    vertGrad.addColorStop(0.15, 'rgba(255,255,255,0.06)')
+    vertGrad.addColorStop(0.85, 'rgba(255,255,255,0.06)')
+    vertGrad.addColorStop(1, 'rgba(0,0,0,0.3)')
+    ctx.fillStyle = vertGrad
+    ctx.fillRect(0, 0, 256, 1024)
 
     // Edge vignette — worn leather edges
     const edgeGrad = ctx.createLinearGradient(0, 0, 256, 0)
@@ -84,7 +110,7 @@ export function initBooks(scene: THREE.Scene, camera: THREE.Camera): void {
 
     // Gold rule lines
     ctx.strokeStyle = 'rgba(201,162,39,0.75)'
-    ctx.lineWidth = 2
+    ctx.lineWidth = 3
     ctx.beginPath(); ctx.moveTo(12, 55); ctx.lineTo(244, 55); ctx.stroke()
     ctx.beginPath(); ctx.moveTo(12, 62); ctx.lineTo(244, 62); ctx.stroke()
     ctx.beginPath(); ctx.moveTo(12, 962); ctx.lineTo(244, 962); ctx.stroke()
@@ -121,11 +147,18 @@ export function initBooks(scene: THREE.Scene, camera: THREE.Camera): void {
     return new THREE.CanvasTexture(canvas)
   }
 
-  function addBook(bookData: BookData, shelfIndex: number): THREE.Mesh {
+  function addBook(bookData: BookData, shelfIndex: number): THREE.Mesh | null {
     // Every book unique: random height, width, lean, spine variation.
+    // Width reverted to its original range; only height keeps a 1.2× scale.
     const width = 0.08 + Math.random() * 0.05 // 0.08–0.13
-    const height = 0.55 + Math.random() * 0.3 // 0.55–0.85
+    const height = (0.55 + Math.random() * 0.3) * 1.2 // 0.66–1.02
     const depth = 0.32
+
+    // Hard clamp: never let a book cross the right edge of the bay
+    // (xStart + 2.8). If this book would overflow, stop filling the row.
+    if (shelfOffsets[shelfIndex] + width > 2.8) {
+      return null
+    }
 
     const geometry = new THREE.BoxGeometry(width, height, depth)
 
@@ -164,15 +197,17 @@ export function initBooks(scene: THREE.Scene, camera: THREE.Camera): void {
     }
     book.userData = userData
 
-    shelfOffsets[shelfIndex] += width + 0.02
+    shelfOffsets[shelfIndex] += width + 0.01
 
     scene.add(book)
     bookMeshes.push(book)
     return book
   }
 
+  // 7 books per row spreads all 20 across the three existing shelves
+  // (rows 0–2); the old divisor of 5 would index a 4th, non-existent shelf.
   books.forEach((book, i) => {
-    addBook(book, Math.floor(i / 5))
+    addBook(book, Math.floor(i / 7))
   })
 
   // ── Hover + click ─────────────────────────────────────────────────────────

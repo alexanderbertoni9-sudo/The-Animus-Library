@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import gsap from 'gsap'
+import { initVines } from './vines'
 
 // ── Camera / dolly constants ────────────────────────────────────────────────
 // FOV 22 fills the frame with shelf wood so the dark void never shows.
@@ -10,7 +11,7 @@ const FOV = 22
 const CAM_Z = 3.8
 export const BAY_LEFT = -1.5
 export const BAY_RIGHT = 1.5
-const CAM_Y_MAX = 1.4
+const CAM_Y_MAX = 2.2 // raised +0.8 — camera was starting too low
 const CAM_Y_MIN = -2.6
 
 // ── Core singletons ─────────────────────────────────────────────────────────
@@ -156,6 +157,13 @@ export function loadBookshelf(onLoaded: () => void): void {
 
       const maxAniso = renderer.capabilities.getMaxAnisotropy()
 
+      // FIX 3: recolour the vines/leaves green (they ship white). Track whether
+      // anything matched so we can dump mesh names if the naming differs.
+      const vineMat = new THREE.MeshStandardMaterial({ color: 0x2d4a1e, roughness: 0.9, metalness: 0.0 })
+      const stemMat = new THREE.MeshStandardMaterial({ color: 0x1a2e0f, roughness: 0.9, metalness: 0.0 })
+      const meshNames: string[] = []
+      let foliageMatched = 0
+
       gltf.scene.traverse((node) => {
         const mesh = node as THREE.Mesh
         if (!mesh.isMesh) return
@@ -171,9 +179,28 @@ export function loadBookshelf(onLoaded: () => void): void {
             std.map.needsUpdate = true
           }
         }
+
+        meshNames.push(mesh.name)
+        const name = mesh.name.toLowerCase()
+        if (name.includes('stem')) {
+          mesh.material = stemMat
+          foliageMatched++
+        } else if (name.includes('vine') || name.includes('leaf') || name.includes('plant')) {
+          mesh.material = vineMat
+          foliageMatched++
+        }
       })
 
+      // No foliage matched — log every mesh name so we can identify them next pass.
+      if (foliageMatched === 0) {
+        console.log('No vine/leaf/plant/stem meshes matched. GLB mesh names:', meshNames)
+      }
+
       scene.add(gltf.scene)
+
+      // Procedural ivy overgrowing the left bay (purely additive).
+      initVines(scene)
+
       onLoaded()
     },
     undefined,
