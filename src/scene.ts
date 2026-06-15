@@ -15,7 +15,8 @@ const CAM_Y_MIN = -2.6
 
 // ── Core singletons ─────────────────────────────────────────────────────────
 export const scene = new THREE.Scene()
-scene.background = new THREE.Color(0x0d0905)
+scene.background = new THREE.Color(0x1a0d05)
+scene.fog = new THREE.FogExp2(0x0d0804, 0.18)
 
 export const camera = new THREE.PerspectiveCamera(
   FOV,
@@ -30,7 +31,7 @@ export const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 renderer.toneMapping = THREE.ACESFilmicToneMapping
-renderer.toneMappingExposure = 1.1
+renderer.toneMappingExposure = 1.8
 renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
 document.body.appendChild(renderer.domElement)
