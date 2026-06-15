@@ -4,3 +4,7 @@ node_modules/
 .vite-dev.log
 .DS_Store
 **/.DS_Store
+node_modules/
+.npm-cache/
+.DS_Store
+.vite-dev.log
