@@ -1,6 +1,12 @@
 import * as THREE from 'three'
 import gsap from 'gsap'
 
+declare global {
+  interface Window {
+    closePanel: () => void
+  }
+}
+
 interface BookData {
   id: number
   title: string
@@ -47,61 +53,69 @@ export function initBooks(scene: THREE.Scene, camera: THREE.Camera): void {
     const g = (hexColor >> 8) & 255
     const b = hexColor & 255
 
-    // Base: leather tone derived from the book colour, darkened by 40%.
-    const lr = Math.floor(r * 0.6)
-    const lg = Math.floor(g * 0.6)
-    const lb = Math.floor(b * 0.6)
-    ctx.fillStyle = `rgb(${lr}, ${lg}, ${lb})`
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    // Leather gradient — darker at edges
+    const grad = ctx.createLinearGradient(0, 0, 256, 0)
+    grad.addColorStop(0, `rgb(${Math.max(0, r - 40)},${Math.max(0, g - 30)},${Math.max(0, b - 20)})`)
+    grad.addColorStop(0.3, `rgb(${r},${g},${b})`)
+    grad.addColorStop(0.7, `rgb(${Math.min(255, r + 15)},${Math.min(255, g + 10)},${Math.min(255, b + 8)})`)
+    grad.addColorStop(1, `rgb(${Math.max(0, r - 35)},${Math.max(0, g - 25)},${Math.max(0, b - 15)})`)
+    ctx.fillStyle = grad
+    ctx.fillRect(0, 0, 256, 1024)
 
-    // Noise: 200 faint 1px strokes at random angles — leather grain.
-    ctx.lineWidth = 1
-    for (let i = 0; i < 200; i++) {
-      const x = Math.random() * canvas.width
-      const y = Math.random() * canvas.height
-      const angle = Math.random() * Math.PI * 2
-      const len = 8 + Math.random() * 24
-      const opacity = 0.03 + Math.random() * 0.03
-      ctx.strokeStyle = `rgba(0, 0, 0, ${opacity})`
+    // Leather grain lines
+    for (let i = 0; i < 400; i++) {
+      const y = Math.random() * 1024
+      ctx.strokeStyle = `rgba(0,0,0,${0.02 + Math.random() * 0.05})`
+      ctx.lineWidth = Math.random() * 1.5
       ctx.beginPath()
-      ctx.moveTo(x, y)
-      ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len)
+      ctx.moveTo(0, y)
+      ctx.lineTo(256, y + (Math.random() - 0.5) * 8)
       ctx.stroke()
     }
 
-    // Gold rule lines — two horizontal bands.
-    ctx.strokeStyle = 'rgba(201, 146, 42, 0.7)'
+    // Edge vignette — worn leather edges
+    const edgeGrad = ctx.createLinearGradient(0, 0, 256, 0)
+    edgeGrad.addColorStop(0, 'rgba(0,0,0,0.4)')
+    edgeGrad.addColorStop(0.12, 'rgba(0,0,0,0)')
+    edgeGrad.addColorStop(0.88, 'rgba(0,0,0,0)')
+    edgeGrad.addColorStop(1, 'rgba(0,0,0,0.35)')
+    ctx.fillStyle = edgeGrad
+    ctx.fillRect(0, 0, 256, 1024)
+
+    // Gold rule lines
+    ctx.strokeStyle = 'rgba(201,162,39,0.75)'
     ctx.lineWidth = 2
-    for (const y of [80, 944]) {
-      ctx.beginPath()
-      ctx.moveTo(18, y)
-      ctx.lineTo(canvas.width - 18, y)
-      ctx.stroke()
-    }
+    ctx.beginPath(); ctx.moveTo(12, 55); ctx.lineTo(244, 55); ctx.stroke()
+    ctx.beginPath(); ctx.moveTo(12, 62); ctx.lineTo(244, 62); ctx.stroke()
+    ctx.beginPath(); ctx.moveTo(12, 962); ctx.lineTo(244, 962); ctx.stroke()
+    ctx.beginPath(); ctx.moveTo(12, 969); ctx.lineTo(244, 969); ctx.stroke()
 
-    // Title — IM Fell English serif, gold, rotated -90°, centred on the spine.
+    // Engraved title — three pass rendering for depth illusion
     ctx.save()
-    ctx.translate(canvas.width / 2, canvas.height / 2)
+    ctx.translate(128, 820)
     ctx.rotate(-Math.PI / 2)
-    ctx.font = '42px "IM Fell English", serif'
-    ctx.fillStyle = '#D4A853'
+    const displayTitle = title.length > 24 ? title.substring(0, 22) + '…' : title
+    ctx.font = 'bold 38px "IM Fell English", Georgia, serif'
     ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText(title, 0, 0)
+    // Shadow pass
+    ctx.fillStyle = 'rgba(0,0,0,0.7)'
+    ctx.fillText(displayTitle, 2, 2)
+    // Highlight pass
+    ctx.fillStyle = 'rgba(255,220,140,0.25)'
+    ctx.fillText(displayTitle, -1, -1)
+    // Gold text
+    ctx.fillStyle = '#D4A853'
+    ctx.fillText(displayTitle, 0, 0)
     ctx.restore()
 
-    // Wear marks — 3–5 scattered dark ellipses.
-    const wearCount = 3 + Math.floor(Math.random() * 3)
-    for (let i = 0; i < wearCount; i++) {
-      const x = Math.random() * canvas.width
-      const y = Math.random() * canvas.height
-      const rx = 6 + Math.random() * 22
-      const ry = 10 + Math.random() * 40
-      const opacity = 0.08 + Math.random() * 0.07
-      ctx.fillStyle = `rgba(0, 0, 0, ${opacity})`
+    // Random scratches
+    for (let i = 0; i < 4; i++) {
+      ctx.strokeStyle = `rgba(0,0,0,${0.06 + Math.random() * 0.1})`
+      ctx.lineWidth = Math.random() * 2
       ctx.beginPath()
-      ctx.ellipse(x, y, rx, ry, Math.random() * Math.PI, 0, Math.PI * 2)
-      ctx.fill()
+      ctx.moveTo(Math.random() * 256, Math.random() * 1024)
+      ctx.lineTo(Math.random() * 256, Math.random() * 1024)
+      ctx.stroke()
     }
 
     return new THREE.CanvasTexture(canvas)
@@ -116,8 +130,9 @@ export function initBooks(scene: THREE.Scene, camera: THREE.Camera): void {
     const geometry = new THREE.BoxGeometry(width, height, depth)
 
     const spineTexture = createSpineTexture(bookData.title, bookData.color)
+    // Leather, not plastic — high roughness, zero metalness.
     const coverMaterial = () =>
-      new THREE.MeshStandardMaterial({ color: bookData.color, roughness: 0.85 })
+      new THREE.MeshStandardMaterial({ color: bookData.color, roughness: 0.9, metalness: 0.0 })
 
     // Box face order: +x, -x, +y, -y, +z (spine, faces camera), -z.
     const materials: THREE.MeshStandardMaterial[] = [
@@ -125,7 +140,7 @@ export function initBooks(scene: THREE.Scene, camera: THREE.Camera): void {
       coverMaterial(),
       coverMaterial(),
       coverMaterial(),
-      new THREE.MeshStandardMaterial({ map: spineTexture, roughness: 0.8 }),
+      new THREE.MeshStandardMaterial({ map: spineTexture, roughness: 0.85, metalness: 0.0 }),
       coverMaterial()
     ]
 
@@ -206,12 +221,20 @@ export function initBooks(scene: THREE.Scene, camera: THREE.Camera): void {
   const panel = document.getElementById('book-panel') as HTMLElement | null
   const panelTitle = document.getElementById('panel-title') as HTMLElement | null
   const panelAuthor = document.getElementById('panel-author') as HTMLElement | null
-  const panelClose = document.getElementById('panel-close') as HTMLElement | null
+  const panelNotes = document.getElementById('panel-notes') as HTMLTextAreaElement | null
+
+  let notesBookId: number | null = null
 
   function openBookPanel(data: BookUserData): void {
     if (!panel) return
     if (panelTitle) panelTitle.textContent = data.title
     if (panelAuthor) panelAuthor.textContent = data.author
+
+    // Load this book's saved note (per-book localStorage key).
+    notesBookId = data.id
+    if (panelNotes) {
+      panelNotes.value = localStorage.getItem(`animus_notes_${data.id}`) ?? ''
+    }
 
     panel.style.display = 'block'
     gsap.fromTo(
@@ -234,5 +257,60 @@ export function initBooks(scene: THREE.Scene, camera: THREE.Camera): void {
     })
   }
 
-  if (panelClose) panelClose.addEventListener('click', closeBookPanel)
+  // Persist notes on every keystroke, keyed to the open book.
+  if (panelNotes) {
+    panelNotes.addEventListener('input', () => {
+      if (notesBookId === null) return
+      localStorage.setItem(`animus_notes_${notesBookId}`, panelNotes.value)
+    })
+  }
+
+  // The panel's "Dismiss" button calls this via inline onclick.
+  window.closePanel = closeBookPanel
+
+  // ── Add your own book ─────────────────────────────────────────────────────
+  // Colours drawn from the existing spine palette.
+  const palette = books.map((b) => b.color)
+  let nextId = books.reduce((max, b) => Math.max(max, b.id), 0) + 1
+
+  const addTrigger = document.getElementById('add-book-trigger') as HTMLElement | null
+  const addForm = document.getElementById('add-book-form') as HTMLFormElement | null
+  const addOverlay = document.getElementById('add-book-overlay') as HTMLElement | null
+  const addTitle = document.getElementById('add-book-title') as HTMLInputElement | null
+  const addAuthor = document.getElementById('add-book-author') as HTMLInputElement | null
+
+  function openAddForm(): void {
+    if (!addOverlay) return
+    addOverlay.style.display = 'flex'
+    addTitle?.focus()
+  }
+
+  function closeAddForm(): void {
+    if (!addOverlay) return
+    addOverlay.style.display = 'none'
+    addForm?.reset()
+  }
+
+  if (addTrigger) addTrigger.addEventListener('click', openAddForm)
+
+  // Click the dim backdrop (but not the card) to dismiss.
+  if (addOverlay) {
+    addOverlay.addEventListener('click', (e) => {
+      if (e.target === addOverlay) closeAddForm()
+    })
+  }
+
+  if (addForm) {
+    addForm.addEventListener('submit', (e) => {
+      e.preventDefault()
+      const title = (addTitle?.value ?? '').trim()
+      const author = (addAuthor?.value ?? '').trim()
+      if (!title || !author) return
+
+      const color = palette[Math.floor(Math.random() * palette.length)]
+      addBook({ id: nextId++, title, author, color }, 0)
+
+      closeAddForm()
+    })
+  }
 }

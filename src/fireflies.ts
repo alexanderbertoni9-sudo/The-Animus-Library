@@ -13,13 +13,13 @@ const fireflies: Firefly[] = []
 
 export function initFireflies(scene: THREE.Scene): void {
   // Share one tiny sphere across all 14 motes.
-  const geometry = new THREE.SphereGeometry(0.018, 8, 8)
+  const geometry = new THREE.SphereGeometry(0.012, 8, 8)
 
   for (let i = 0; i < 14; i++) {
     const material = new THREE.MeshBasicMaterial({ color: 0xffd580 })
     const mesh = new THREE.Mesh(geometry, material)
 
-    const light = new THREE.PointLight(0xffd580, 0.25, 1.2, 2)
+    const light = new THREE.PointLight(0xffd580, 0.2, 0.9, 2)
 
     // Scattered in front of the shelves, spanning both bays.
     const origin = new THREE.Vector3(
