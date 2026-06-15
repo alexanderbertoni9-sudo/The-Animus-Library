@@ -1,1 +1,6 @@
-/.DS_Store
+/.DS_Store.npm-cache/
+node_modules/
+.npm-cache/
+.vite-dev.log
+.DS_Store
+**/.DS_Store
