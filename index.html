@@ -1,332 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Pinyon+Script&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet"><!--cursive font-->
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Animus</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap"
+    rel="stylesheet"
+  />
+
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #1a0a02; overflow: hidden; width: 100vw; height: 100vh; }
-    canvas { display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
-/*ui elements starting with the little click button*/
+
+    body {
+      background: #0d0905;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      font-family: 'IM Fell English', serif;
+    }
+
+    canvas {
+      display: block;
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Every overlay starts hidden and fades in once the GLB has loaded. */
+    .ui {
+      opacity: 0;
+      transition: opacity 0.9s ease;
+    }
+    .ui.visible { opacity: 1; }
+
+    /* ── Side switch arrow ─────────────────────────────────────────────── */
     #side-arrow {
       position: fixed;
       top: 50%;
-      right: 20px;
+      right: 22px;
       transform: translateY(-50%);
       z-index: 50;
       cursor: pointer;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       user-select: none;
-      opacity: 0;
-      transition: opacity 0.6s ease;
     }
-    #side-arrow.visible { opacity: 1; }
-
     #side-arrow .arrow-btn {
       width: 44px;
       height: 44px;
-      border: 1.5px solid rgba(210,155,80,0.55);
+      border: 1.5px solid rgba(212, 168, 83, 0.5);
       border-radius: 50%;
-      background: rgba(20,8,2,0.65);
+      background: rgba(13, 9, 5, 0.7);
       backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
       display: flex;
       align-items: center;
       justify-content: center;
       transition: background 0.25s, border-color 0.25s, transform 0.2s;
     }
     #side-arrow:hover .arrow-btn {
-      background: rgba(210,155,80,0.18);
-      border-color: rgba(210,155,80,0.9);
-      transform: scale(1.08);
+      background: rgba(212, 168, 83, 0.16);
+      border-color: rgba(212, 168, 83, 0.85);
+      transform: scale(1.07);
     }
     #side-arrow .arrow-btn svg {
-      width: 18px; height: 18px;
-      fill: none; stroke: #D29B50;
-      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: #d4a853;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
     #side-arrow .arrow-label {
-      font-family: 'IM Fell English', serif;
-      font-size: 10px; letter-spacing: 0.12em;
-      color: rgba(210,155,80,0.7); text-transform: uppercase;
-    }
-/*here is the scroll bar element im not sure how i feel about it*/
-    #scroll-progress {
-      position: fixed; right: 10px; top: 50%;
-      transform: translateY(-50%);
-      width: 2px; height: 100px;
-      background: rgba(210,155,80,0.1); border-radius: 2px;
-      z-index: 49; opacity: 0; transition: opacity 0.6s;
-    }
-    #scroll-progress.visible { opacity: 1; }
-    #scroll-progress-fill {
-      width: 100%; background: rgba(210,155,80,0.55);
-      border-radius: 2px; height: 0%;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(212, 168, 83, 0.6);
     }
 
+    /* ── Side label (top centre) ───────────────────────────────────────── */
+    #side-label {
+      position: fixed;
+      top: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #d4a853;
+    }
+
+    /* ── Scroll indicator (bottom centre) ──────────────────────────────── */
+    #scroll-hint {
+      position: fixed;
+      bottom: 26px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    #scroll-hint .hint-track {
+      position: relative;
+      width: 1px;
+      height: 38px;
+      background: rgba(212, 168, 83, 0.25);
+    }
+    #scroll-hint .hint-dot {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: #d4a853;
+      transform: translateX(-50%);
+      animation: hint-fall 2s ease-in-out infinite;
+    }
+    @keyframes hint-fall {
+      0% { top: 0; opacity: 0; }
+      30% { opacity: 1; }
+      70% { opacity: 1; }
+      100% { top: 35px; opacity: 0; }
+    }
+    #scroll-hint .hint-label {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(212, 168, 83, 0.6);
+    }
+
+    /* ── Scroll progress bar (right edge) ──────────────────────────────── */
+    #scroll-progress {
+      position: fixed;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 2px;
+      height: 100px;
+      background: rgba(212, 168, 83, 0.12);
+      z-index: 49;
+    }
+    #scroll-progress-fill {
+      width: 100%;
+      height: 0%;
+      background: rgba(212, 168, 83, 0.6);
+    }
+
+    /* ── Book panel ────────────────────────────────────────────────────── */
     #book-panel {
-      display: none; position: fixed; top: 50%; right: 80px;
-      transform: translateY(-50%); width: 300px;
-      background: rgba(12,5,1,0.93);
-      border: 1px solid rgba(210,155,80,0.2);
-      border-radius: 4px; padding: 32px 28px;
-      color: #e8d5b0; font-family: 'IM Fell English', serif;
-      backdrop-filter: blur(16px); z-index: 100;
+      display: none;
+      position: fixed;
+      top: 50%;
+      right: 80px;
+      transform: translateY(-50%);
+      width: 300px;
+      padding: 32px;
+      background: rgba(13, 9, 5, 0.94);
+      border: 1px solid rgba(212, 168, 83, 0.18);
+      border-radius: 3px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      color: #d4a853;
+      z-index: 100;
     }
-    #book-panel button.close-btn {
-      position: absolute; top: 14px; right: 16px;
-      background: none; border: none;
-      color: rgba(210,155,80,0.4); font-size: 18px;
-      cursor: pointer; transition: color 0.2s;
+    #book-panel .close-btn {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 18px;
+      color: rgba(212, 168, 83, 0.5);
+      cursor: pointer;
+      transition: color 0.2s;
     }
-    #book-panel button.close-btn:hover { color: rgba(210,155,80,0.9); }
-    #panel-title { font-size: 20px; margin-bottom: 8px; line-height: 1.3; color: #f0e0c0; }
-    #panel-author { font-style: italic; font-size: 13px; color: rgba(210,155,80,0.6); }
+    #book-panel .close-btn:hover { color: #d4a853; }
+    #panel-title {
+      font-size: 21px;
+      line-height: 1.3;
+      margin-bottom: 10px;
+      color: #d4a853;
+    }
+    #panel-author {
+      font-style: italic;
+      font-size: 13px;
+      color: rgba(212, 168, 83, 0.6);
+    }
   </style>
 </head>
 <body>
-
-  <div id="side-arrow">
+  <div id="side-arrow" class="ui">
     <div class="arrow-btn" id="arrow-btn">
       <svg id="arrow-icon" viewBox="0 0 24 24">
-        <polyline points="9 18 15 12 9 6"/>
+        <polyline points="9 18 15 12 9 6" />
       </svg>
     </div>
     <span class="arrow-label" id="arrow-label">Other side</span>
   </div>
 
-  <div id="side-label">Left</div>
+  <div id="side-label" class="ui">Left</div>
 
-  <div id="scroll-hint">
+  <div id="scroll-hint" class="ui">
     <div class="hint-track"><div class="hint-dot"></div></div>
     <span class="hint-label">Scroll</span>
   </div>
 
-  <div id="scroll-progress"><div id="scroll-progress-fill"></div></div>
+  <div id="scroll-progress" class="ui"><div id="scroll-progress-fill"></div></div>
 
   <div id="book-panel">
-    <button class="close-btn" onclick="closePanel()">✕</button>
+    <button class="close-btn" id="panel-close" aria-label="Close">&#10005;</button>
     <h2 id="panel-title"></h2>
     <p id="panel-author"></p>
   </div>
 
-  <script>
-    function closePanel() {
-      const panel = document.getElementById('book-panel')
-      gsap.to(panel, {
-        opacity: 0, x: 40, duration: 0.3, ease: 'power2.in',
-        onComplete: () => panel.style.display = 'none'
-      })
-    }
-  </script>
-
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-      }
-    }
-  </script>
-
-  <script type="module">
-    //these are boring imports
-    import * as THREE from 'three'
-    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
-    import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
-    import { initBooks } from './books.js'//module made for our books in books.js (made by me so its easier)
-
-    //Scene setup
-    const scene = new THREE.Scene()
-    scene.background = new THREE.Color(0x1a0a02)
-
-    // Camera setup
-    // Changes made:
-    //FOV is 22 which fills the screen with bookshelf so ugly black background is gone
-    // Z 3.8 is close enough that the wood fills the screen
-    // X positions: -1.2 and 1.2 are the left and right bay centers. tune if off this is just how the camera is positioned so that the black ground is not seen
-    const FOV       = 22
-    const CAM_Z     = 3.8
-    const BAY_LEFT  = -1.2   // tune if bay centers are off
-    const BAY_RIGHT =  1.2   // tune if bay centers are off
-    const CAM_Y_MAX =  1.6
-    const CAM_Y_MIN = -2.4
-
-    const camera = new THREE.PerspectiveCamera(
-      FOV,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      100
-    )
-
-    let currentSide  = 0   // 0 = left, 1 = right
-    let targetCamY   = CAM_Y_MAX
-    let scrollLocked = false
-
-    camera.position.set(BAY_LEFT, CAM_Y_MAX, CAM_Z)
-    camera.lookAt(BAY_LEFT, CAM_Y_MAX, 0)
-
-    //  Renderer
-    const renderer = new THREE.WebGLRenderer({ antialias: true })
-    renderer.setSize(window.innerWidth, window.innerHeight)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 20//brightness adjusting
-    renderer.shadowMap.enabled=true//i dont know why this looks better it just does and i dont really know why
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap
-    document.body.appendChild(renderer.domElement)
-
-    // Killed the camera-moving and zoom zo user has to see what we want them to see  
-    renderer.domElement.addEventListener('contextmenu', e => e.preventDefault())
-    renderer.domElement.addEventListener('mousedown',   e => e.stopPropagation())
-    renderer.domElement.addEventListener('touchstart',  e => e.stopPropagation(), { passive: false })
-    renderer.domElement.addEventListener('touchmove',   e => e.preventDefault(),  { passive: false })
-
-    // all of this is just lighting crank up and down as needed
-    scene.add(new THREE.AmbientLight(0x1a1a2e, 3))
-    const candle = new THREE.DirectionalLight(0x7A5230, 3)
-    candle.position.set(2, 3, -2)
-    scene.add(candle)
-    const moonLight = new THREE.DirectionalLight(0xc8d8ff, 1)
-    moonLight.position.set(-5, 3, -2)
-    scene.add(moonLight)
-
-    // a lovely scroll progress bar that fills as you scroll down the shelf. purely cosmetic but i like it
-    const progressFill = document.getElementById('scroll-progress-fill')
-
-    function updateProgress() {
-      const t = 1 - (camera.position.y - CAM_Y_MIN) / (CAM_Y_MAX - CAM_Y_MIN)
-      progressFill.style.height = `${(t * 100).toFixed(1)}%`
-    }
-
-    window.addEventListener('wheel', (e) => {
-      if (scrollLocked) return
-      e.preventDefault()
-
-      targetCamY = Math.max(CAM_Y_MIN, Math.min(CAM_Y_MAX, targetCamY - e.deltaY * 0.0018))
-
-      gsap.to(camera.position, {
-        y: targetCamY,
-        duration: 0.55,
-        ease: 'power3.out',
-        overwrite: 'auto',
-        onUpdate: () => {
-          camera.lookAt(focal.x, camera.position.y, 0)
-          updateProgress()
-        }
-      })
-    }, { passive: false })
-
-    // side switching button and logic. the camera slides horizontally to the other bay and locks the scroll during the slide to prevent weirdness.
-    // the focal tracker keeps the camera perfectly locked to the horizontal plane during the slide so there is no weird angle starting point and is soooo smooth
-    const arrowBtn   = document.getElementById('arrow-btn')
-    const arrowLabel = document.getElementById('arrow-label')
-    const sideLabel  = document.getElementById('side-label')
-
-    // Focal tracker
-    // so the view stays perfectly flat during the slide
-    //this animation is my fav :)
-    const focal = { x: BAY_LEFT }
-
-    function switchSide() {
-      if (scrollLocked) return
-      scrollLocked = true
-      arrowBtn.style.pointerEvents = 'none'
-
-      const nextSide = currentSide === 0 ? 1 : 0
-      const targetX  = nextSide === 0 ? BAY_LEFT : BAY_RIGHT
-
-      targetCamY = CAM_Y_MAX
-
-      gsap.to(focal, {
-        x: targetX,
-        duration: 1.4,
-        ease: 'power2.inOut',
-        onUpdate: () => {
-          // position locked here
-          camera.position.x = focal.x
-          camera.position.y = CAM_Y_MAX
-          camera.lookAt(focal.x, CAM_Y_MAX, 0)
-          updateProgress()
-        },
-        onComplete: () => {
-          currentSide  = nextSide
-          scrollLocked = false
-          arrowBtn.style.pointerEvents = 'auto'
-
-          const icon = document.getElementById('arrow-icon')
-          icon.innerHTML = nextSide === 1
-            ? '<polyline points="15 18 9 12 15 6"/>'
-            : '<polyline points="9 18 15 12 9 6"/>'
-
-          arrowLabel.textContent = nextSide === 1 ? 'Left side'  : 'Right side'
-          sideLabel.textContent  = nextSide === 1 ? 'Right' : 'Left'
-        }
-      })
-    }
-
-    arrowBtn.addEventListener('click', switchSide)
-
-    // load bookshelf 
-    const dracoLoader = new DRACOLoader()
-    dracoLoader.setDecoderPath(
-      'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/'
-    )
-    const loader = new GLTFLoader()
-    loader.setDRACOLoader(dracoLoader)
-
-    loader.load(
-      './bookshelf.glb',
-      (gltf) => {
-        gltf.scene.scale.set(3, 3, 3)
-        gltf.scene.position.set(0, -3, 0)
-        gltf.scene.rotation.y = -(Math.PI / 2)
-        scene.add(gltf.scene)
-        //i asked claude to attempt top make t=my 3d model defined instead of blurry and this is the code but i dont really know how this works so im just gonna leave it here and hope it does something
-        gltf.scene.traverse((node) => {
-          if (node.isMesh && node.material.map) {
-            node.material.map.anisotropy = renderer.capabilities.getMaxAnisotropy()
-            node.material.map.needsUpdate = true
-          }
-       })
-       //it didnt really do anyrthing but i will keep it bc i can
-
-initBooks(scene, camera)
-
-        initBooks(scene, camera)
-        console.log('Bookshelf loaded')
-
-        setTimeout(() => {
-          document.getElementById('side-arrow').classList.add('visible')
-          document.getElementById('scroll-hint').classList.add('visible')
-          document.getElementById('scroll-progress').classList.add('visible')
-          document.getElementById('side-label').classList.add('visible')
-        }, 400)
-      },
-      (p) => { if (p.total > 0) console.log(`Loading: ${Math.round(p.loaded/p.total*100)}%`) },
-      (err) => console.error('Load failed:', err)
-    )
-
-    // resizingggggggg
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight
-      camera.updateProjectionMatrix()
-      renderer.setSize(window.innerWidth, window.innerHeight)
-    })
-
-    // this is your genric animation loop. you cqn ignore this. litewrally every animated website like has these and it will be messed up if we chnage it incorrectly
-    function animate() {
-      requestAnimationFrame(animate)
-      renderer.render(scene, camera)
-    }
-    animate()
-  </script>
+  <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
